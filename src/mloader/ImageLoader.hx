@@ -22,139 +22,48 @@ SOFTWARE.
 
 package mloader;
 
+import openfl.events.ProgressEvent;
 import mloader.Loader;
 import msignal.EventSignal;
-
-#if (js && !(nme || openfl))
-/**
-Loads an image at a defined url.
-*/
-class ImageLoader extends LoaderBase<LoadableImage>
-{
-	/**
-		Specify your own image element to load the image into.
-	*/
-	#if haxe3
-	public var image:js.html.Image;
-	#else
-	public var image:js.Dom.Image;
-	#end
-	
-	public function new(?url:String)
-	{
-		super(url);
-	}
-	
-	override function loaderLoad()
-	{
-		if (image == null)
-		{
-			#if haxe3
-			content = cast js.Browser.document.createElement("img");
-			#else
-			content = cast js.Lib.document.createElement("img");
-			#end
-		}
-		else
-		{
-			content = image;
-		}
-		
-		#if !default_cross_origin
-			#if !haxe3 untyped #end content.crossOrigin = "Anonymous";
-		#end
-		content.onload = imageLoad;
-		content.onerror = imageError;
-		content.src = url;
-		
-		// Browsers can fail to trigger onload when the image is in cache.
-		// This check determines if the image has loaded synchronously without
-		// triggering an event handler, and if so manually calls loaderComplete().
-		// https://code.google.com/p/chromium/issues/detail?id=7731
-		if (content.complete == true && content.onload != null)
-		{
-			content.onload = null;
-			content.onerror = null;
-			loaderComplete();
-		}
-	}
-
-	override function loaderCancel():Void
-	{
-		content.onload = null;
-		content.onerror = null;
-		content.src = "";
-	}
-
-	function imageLoad(event)
-	{
-		content.onload = null;
-		content.onerror = null;
-		loaderComplete();
-	}
-
-	function imageError(event)
-	{
-		if (content == null)
-			return;
-		
-		content.onload = null;
-		content.onerror = null;
-		loaderFail(IO(Std.string(event)));
-	}
-}
-
-#elseif (flash || nme || openfl)
 
 /**
 Loads BitmapData from a defined url.
 */
 class ImageLoader extends LoaderBase<LoadableImage>
 {
-	var loader:flash.display.Loader;
+	var loader:openfl.display.Loader;
 
-	public function new(?url:String)
+	public function new(?url:String, ?id:String)
 	{
-		super(url);
+		super(url, id);
 
-		loader = new flash.display.Loader();
+		loader = new openfl.display.Loader();
 
 		var loaderInfo = loader.contentLoaderInfo;
-		loaderInfo.addEventListener(flash.events.ProgressEvent.PROGRESS, loaderProgressed);
-		loaderInfo.addEventListener(flash.events.Event.COMPLETE, loaderCompleted);
-		loaderInfo.addEventListener(flash.events.IOErrorEvent.IO_ERROR, loaderErrored);
+		loaderInfo.addEventListener(openfl.events.ProgressEvent.PROGRESS, loaderProgressed);
+		loaderInfo.addEventListener(openfl.events.Event.COMPLETE, loaderCompleted);
+		loaderInfo.addEventListener(openfl.events.IOErrorEvent.IO_ERROR, loaderErrored);
 	}
 
 	override function loaderLoad()
 	{
-		#if (nme || openfl)
-		if (url.indexOf("http://") == 0 || url.indexOf("https://") == 0)
-		{
-			loader.load(new flash.net.URLRequest(url));
-		}
-		else
-		{
-			#if openfl
-			content = openfl.Assets.getBitmapData(url);
-			#else
-			content = nme.installer.Assets.getBitmapData(url);
-			#end
-			loaderComplete();
-		}
-		#else
-		var loaderContext = new flash.system.LoaderContext(true);
-		loader.load(new flash.net.URLRequest(url), loaderContext);
-		#end
+		
+		
+		/*
+		var url:URLRequest = new URLRequest( "./images/page3/lady.png" );
+		var ldr = new Loader();
+		ldr.load( url );
+		*/
+
+			loader.load(new openfl.net.URLRequest(url));
 	}
 
 	override function loaderCancel()
 	{
-		#if !(nme || openfl)
 		loader.close();
-		#end
 	}
 	
-	function loaderProgressed(event:flash.events.ProgressEvent)
+	function loaderProgressed(event:ProgressEvent)
 	{
 		progress = 0.0;
 
@@ -168,7 +77,7 @@ class ImageLoader extends LoaderBase<LoadableImage>
 
 	function loaderCompleted(event)
 	{
-		content = untyped loader.content.bitmapData;
+		content = loader;//untyped loader.content.bitmapData;
 		loaderComplete();
 	}
 
@@ -177,19 +86,3 @@ class ImageLoader extends LoaderBase<LoadableImage>
 		loaderFail(IO(Std.string(event)));
 	}
 }
-
-#else
-
-/**
-ImageLoading is not supported in neko.
-*/
-class ImageLoader extends LoaderBase<LoadableImage>
-{
-	public function new(?url:String)
-	{
-		super(url);
-		
-		throw "mloader.ImageLoader is not implemented on this platform";
-	}
-}
-#end

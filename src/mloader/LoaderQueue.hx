@@ -55,6 +55,7 @@ after this failure will be processed and the queue will be cleared.
 class LoaderQueue implements Loader<Array<Loader<Dynamic>>>
 {
 	public var content(default, null):Array<Loader<Dynamic>>;
+	public var id(default, null):String;
 
 	/**
 	The default value for maxLoading.
@@ -140,7 +141,7 @@ class LoaderQueue implements Loader<Array<Loader<Dynamic>>>
 	{
 		maxLoading = DEFAULT_MAX_LOADING;
 		loaded = new EventSignal<Loader<Array<Loader<Dynamic>>>, LoaderEventType>(this);
-
+		content = new Array<Loader<Dynamic>>();
 		loading = false;
 		ignoreFailures = true;
 		autoLoad = false;
@@ -211,6 +212,7 @@ class LoaderQueue implements Loader<Array<Loader<Dynamic>>>
 
 	function loaderCompleted(loader:Loader<Dynamic>)
 	{
+		content.push(loader);
 		loader.loaded.remove(loaderLoaded);
 		activeLoaders.remove(loader);
 		numLoaded++;

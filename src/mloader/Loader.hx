@@ -51,6 +51,8 @@ interface Loader<T>
 	*/
 	var content(default, null):Null<T>;
 
+	var id(default, null):String;
+
 	/**
 	The current state of the loader: true if it is loading, false if it has 
 	completed, failed, or not started.
