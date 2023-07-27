@@ -50,6 +50,7 @@ class LoaderBase<T> implements Loader<T>
 	The loaded content, only available after completed is dispatched.
 	*/
 	public var content(default, null):Null<T>;
+	public var id(default, null):String;
 
 	/**
 	The current state of the loader: true if content is currently being loaded, 
@@ -70,11 +71,12 @@ class LoaderBase<T> implements Loader<T>
 	/**
 	@param url  the url to load the resource from
 	*/
-	public function new(?url:String)
+	public function new(?url:String, ?id:String)
 	{
 		this.loaded = new EventSignal<Loader<T>, LoaderEventType>(this);
 		this.url = sanitizeUrl(url);
-
+		this.id = id;
+		
 		// set initial state
 		progress = 0;
 		loading = false;
